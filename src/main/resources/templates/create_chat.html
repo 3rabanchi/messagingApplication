@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>HOME</title>
+</head>
+<body>
+<div id="welcome-page">
+    <div class="welcome-page-container">
+        <h1 class="title">Chat creation</h1>
+        <form th:action="@{/chatSubmit}">
+            <div class="form-group">
+                <input type="text" th:name="chatName"/>
+            </div>
+            <div class="form-group">
+                <button type="submit" onclass="accent username-submit">Create chat</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

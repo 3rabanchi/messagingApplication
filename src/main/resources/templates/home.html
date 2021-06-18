@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>HOME</title>
 </head>
 <body>
+<div>
+    <b>
+        <span th:text="${submitResult}" style="color: #ff4743 ;" />
+    </b>
+  </div>
+<div id="welcome-page">
+    <div class="welcome-page-container">
+        <h1 class="title">Chat application</h1>
+        <a th:href="@{/createChat}">Create chat</a>
+        <br><a th:href="@{/viewChats}">View chats</a>
+    </div>
+</div>
+
 
 </body>
 </html>

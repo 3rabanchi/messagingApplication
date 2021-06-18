@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    {
+      "management_port": "15672",
+      "amqp_port": "5672"
+    },
+    {
+      "management_port": "15673",
+      "amqp_port": "5673"
+    },
+    {
+      "management_port": "15674",
+      "amqp_port": "5674"
+    }
+  ],
+  "user": "AlJanabi"
+}
