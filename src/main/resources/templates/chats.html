@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Chats</title>
+</head>
+
+<div>
+    <b>
+        <tr th:each="chat : ${chats}">
+            <td><span th:text="${chat.port}"> Port </span></td>
+            <br>
+        </tr>
+    </b>
+</div>
+<body>
+
+</body>
+</html>

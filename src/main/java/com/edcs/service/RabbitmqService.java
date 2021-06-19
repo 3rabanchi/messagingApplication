@@ -16,18 +16,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 @Service
 public class RabbitmqService {
 
 
-    public HashMap<String,Channel> nodes = new HashMap<>();
+    public HashMap<String, Channel> nodes = new HashMap<>();
 
 
-    public Channel startConnection(int port) throws Exception {
+    public void startConnection(int port) {
         ConnectionFactory factory = new ConnectionFactory();
         Connection connection = null;
         Channel channel = null;
@@ -41,15 +43,98 @@ public class RabbitmqService {
         } catch (Exception e) {
             System.out.println("An error occured when trying to connect to RabbitMQ, details:" + e.getMessage());
         }
-        nodes.put(String.valueOf(port),channel);
-        return channel;
+        nodes.put(String.valueOf(port), channel);
     }
 
-    public void sendMessage(String port,String queueName, String message) throws IOException {
+    public void createQueue(String port) throws IOException {
+        startConnection(Integer.parseInt(port));
         Channel channel = nodes.get(port);
-       // channel.queueDeclare(queueName, false, false, false, null);
-        channel.basicPublish("", queueName, null, message.getBytes());
+        channel.queueDeclare("Chat", false, false, false, null);
+    }
+
+
+    public void sendMessage(String port, String queueName, String message) {
+        Channel channel = nodes.get(port);
+        // channel.queueDeclare(queueName, false, false, false, null);
+
+        checkIfThereAreUnsentMessages(port, channel, queueName);
+
+        try {
+            channel.basicPublish("", queueName, null, message.getBytes());
+        } catch (Exception e) {
+            savingMessageToFile(port, queueName, message);
+        }
         System.out.println(" [x] Sent '" + message + "'");
+    }
+
+    private void checkIfThereAreUnsentMessages(String port, Channel channel, String queueName) {
+        ArrayList<String> lines = new ArrayList<>();
+        File myObj = new File("messages_not_sent.txt");
+        Scanner myReader = null;
+        try {
+            myReader = new Scanner(myObj);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        while (myReader.hasNextLine()) {
+            lines.add(myReader.nextLine());
+        }
+        myReader.close();
+        boolean flag = true;
+        for (String line : lines) {
+            line.contains(port);
+            try {
+                channel.basicPublish("", queueName, null, line.substring(line.lastIndexOf(":")).getBytes());
+            } catch (Exception e) {
+                e.printStackTrace();
+                flag = false;
+                break;
+            }
+            System.out.println("THERE IS AN UNSENT MESSAGE FOR PORT " + port);
+        }
+        removeSentMessages(port, lines, flag);
+    }
+
+    private void removeSentMessages(String port, ArrayList<String> lines, boolean flag) {
+        if (flag) {
+            try {
+                FileWriter myWriter = new FileWriter("messages_not_sent.txt");
+                BufferedWriter bw = new BufferedWriter(myWriter);
+                for (String line : lines) {
+                    if (!line.contains(port)) {
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                bw.close();
+            } catch (Exception e) {
+                System.out.println("Error with file reading!");
+            }
+        }
+    }
+
+    private void savingMessageToFile(String port, String queueName, String message) {
+        try {
+            System.out.println("Sending failed! Making a backup in file");
+            FileWriter myWriter = new FileWriter("messages_not_sent.txt", true);
+            BufferedWriter bw = new BufferedWriter(myWriter);
+            bw.write(port + ":" + queueName + ":" + message);
+            bw.newLine();
+            bw.close();
+        } catch (Exception e) {
+            System.out.println("Error with file reading!");
+        }
+
+    }
+
+
+    public void bindQueue(String port) {
+        Channel channel = nodes.get(port);
+        try {
+            channel.queueBind("Chat", "", "");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void getMessage() throws IOException {
@@ -81,15 +166,14 @@ public class RabbitmqService {
         Config config = mapper.readValue(data, Config.class);
 
         String nodePort = null;
-        for(Nodes node : config.getNodes()){
-            System.out.println(node.getManagementPort()+ " - checking!");
-            if(ifUsed(node.getManagementPort())){
-                System.out.println(node.getManagementPort()+ " is not used!");
-                nodePort = node.getManagementPort();
+        for (Nodes node : config.getNodes()) {
+            System.out.println(node.getManagementPort() + " - checking!");
+            if (ifUsed(node.getManagementPort())) {
+                System.out.println(node.getManagementPort() + " is not used!");
+                nodePort = node.getAmqpPort();
                 break;
-            }
-            else
-                System.out.println(node.getManagementPort()+ " is used!");
+            } else
+                System.out.println(node.getManagementPort() + " is used!");
         }
         return nodePort;
     }
