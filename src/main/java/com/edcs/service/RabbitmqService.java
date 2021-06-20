@@ -85,6 +85,12 @@ public class RabbitmqService {
     private void checkIfThereAreUnsentMessages(String port, Channel channel) {
         ArrayList<String> lines = new ArrayList<>();
         File myObj = new File("messages_not_sent.txt");
+        Config config = null;
+        try {
+            config = getConfig();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         Scanner myReader = null;
         try {
             myReader = new Scanner(myObj);
@@ -99,7 +105,7 @@ public class RabbitmqService {
         for (String line : lines) {
             line.contains(port);
             try {
-                channel.basicPublish(EXCHANGE_NAME, "user.*", null, line.substring(line.lastIndexOf(":")).getBytes());
+                channel.basicPublish(EXCHANGE_NAME, "user.*", null, (config.getUser()+line.substring(line.lastIndexOf(":"))).getBytes());
             } catch (Exception e) {
                 e.printStackTrace();
                 flag = false;
@@ -184,8 +190,9 @@ public class RabbitmqService {
         Config config = mapper.readValue(data, Config.class);
         return config;
     }
-    public void consume(String port) throws IOException {
+    public String consume(String port) throws IOException {
 
+        String result = "";
         Config config = null;
         try {
             config = getConfig();
@@ -201,9 +208,16 @@ public class RabbitmqService {
             MESSAGES.add(new Message(message));
         };
 
-        channel.basicConsume("queue."+config.getUser(),
-                true, deliverCallback, consumerTag -> {
-                });
+        try{
+            channel.basicConsume("queue."+config.getUser(),
+                    true, deliverCallback, consumerTag -> {
+                    });
+        }
+        catch (Exception e){
+            System.out.println("Error retrievieng messages!");
+            result = "A problem occured with the server, please try again!";
+        }
+        return result;
     }
     public void removeQueue(String port) throws IOException {
         startConnection(Integer.parseInt(port));

@@ -37,6 +37,12 @@
         <input type="hidden" name="_method" value="leave" />
         <button type="submit" id="submitLeave" style="background-color: #f4f4f4">Leave chat</button>
     </form>
+    <br>
+    <div>
+        <b>
+            <span th:text="${result}" style="color: #ff4743 ;" />
+        </b>
+    </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
 <script src="/js/script.js"></script>

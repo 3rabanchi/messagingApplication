@@ -46,6 +46,10 @@ public class ChatController {
         }
         return "home.html";
     }
+    @GetMapping("/")
+    public String home() throws IOException {
+        return "home.html";
+    }
 
     @GetMapping("/joinChat")
     public String joinChat(Model model) throws IOException {
@@ -153,7 +157,7 @@ public class ChatController {
     @GetMapping(value = "/connectChat/{port}")
     String getMessage(@PathVariable("port") String port,Model model) throws Exception {
         Message message = new Message();
-
+        rabbitmqService.createQueue(port);
         rabbitmqService.consume(port);
         model.addAttribute("message", message);
         model.addAttribute("port",port);
@@ -162,13 +166,14 @@ public class ChatController {
 
     @GetMapping("/connectChat/{port}/refresh")
     String getMessageRefresh(@PathVariable String port,Model model) throws Exception {
-        rabbitmqService.consume(port);
+        String result = rabbitmqService.consume(port);
         ArrayList<Message> messages = (ArrayList<Message>) rabbitmqService.MESSAGES.clone();
         rabbitmqService.MESSAGES.clear();
         Message message = new Message();
         model.addAttribute("message", message);
         model.addAttribute("messages",messages);
         model.addAttribute("port",port);
+        model.addAttribute("result",result);
         return "chat.html";
     }
 
