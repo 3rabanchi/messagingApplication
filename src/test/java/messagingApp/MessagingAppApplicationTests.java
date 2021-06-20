@@ -10,20 +10,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
+import com.microsoft.signalr.HubConnection;
+import com.microsoft.signalr.HubConnectionBuilder;
+import com.rabbitmq.client.*;
 import org.json.JSONException;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 class MessagingAppApplicationTests {
 
-    public HashMap<String,Channel> nodes = new HashMap<>();
+    public HashMap<String, Channel> nodes = new HashMap<>();
+    public static final String EXCHANGE_NAME = "Messaging";
 
     @Test
     void checkMethodIfUsed() {
@@ -61,11 +62,35 @@ class MessagingAppApplicationTests {
 
     @Test
     public void bindingTest() throws Exception {
-        Channel channel = startConnection(5672);
-        channel.queueDeclare("Test Queue", false, false, false, null);
-        channel.queueBind("Test Queue","","");
+//        Channel channel = startConnection(5672);
+//        channel.queueDeclare("Test Queue", false, false, false, null);
+//        channel.queueBind("Test Queue","","");
 
     }
+
+    @Test
+    public void removeChatNodeConfig() throws JsonProcessingException {
+        String port = "1011";
+        String file = FileUtils.getConnectionsFile();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        ObjectNode fileJson = (ObjectNode) mapper.readTree(file);
+        ArrayNode ports = (ArrayNode) fileJson.get("users").get(0).get("chats");
+        JsonNode wantedPort = null;
+        int iterator = 0;
+        for (JsonNode currentPort : ports) {
+            if (currentPort.get("port").toString().contains(port)) {
+                wantedPort = currentPort;
+                break;
+            }
+            iterator++;
+        }
+        if (wantedPort != null)
+            ports.remove(iterator);
+        System.out.println(mapper.writeValueAsString(fileJson));
+    }
+
     @Test
     public void addChatNodeConfig() throws JsonProcessingException {
         String port = "1111";
@@ -85,22 +110,64 @@ class MessagingAppApplicationTests {
 
     }
 
-    public Channel startConnection(int port) throws Exception {
+    @Test
+    public void sendMessages() throws Exception {
+        startConnection(1011);
+        Channel channel = nodes.get("1011");
+        channel.basicPublish(EXCHANGE_NAME, "user.dupa", null, "brumba".getBytes());
+    }
+
+    @Test
+    public void consumeMessage() throws Exception {
+        final HubConnection hubConnection = HubConnectionBuilder.create("/hub").build();
+        Config config = getConfig();
+        startConnection(1011);
+        Channel channel = nodes.get("1011");
+
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println(" [x] Received '" + message + "'");
+            hubConnection.send("send", message);
+        };
+
+        channel.basicConsume("queue." + config.getUser(),
+                true, deliverCallback, consumerTag -> {
+                });
+    }
+
+    public void startConnection(int port) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         Connection connection = null;
         Channel channel = null;
-        factory.setHost("localhost");
+
+        assignHost(port, factory);
         factory.setPort(port);
+
         factory.setRequestedHeartbeat(10);
         try {
             connection = factory.newConnection();
             channel = connection.createChannel();
+            channel.exchangeDeclare(EXCHANGE_NAME, "topic");
             System.out.println("Connection with port:" + String.valueOf(port) + " is initialized!");
         } catch (Exception e) {
             System.out.println("An error occured when trying to connect to RabbitMQ, details:" + e.getMessage());
         }
-        nodes.put(String.valueOf(port),channel);
-        return channel;
+        nodes.put(String.valueOf(port), channel);
+    }
+
+    private void assignHost(int port, ConnectionFactory factory) {
+        if (port > 1013)
+            factory.setHost("192.168.8.156");
+        else
+            factory.setHost("192.168.8.150");
+    }
+
+    private Config getConfig() throws JsonProcessingException {
+        String data = FileUtils.getConfigFile();
+
+        ObjectMapper mapper = new ObjectMapper();
+        Config config = mapper.readValue(data, Config.class);
+        return config;
     }
 
 }

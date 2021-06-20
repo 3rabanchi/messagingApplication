@@ -8,7 +8,9 @@
 <div>
     <b>
         <tr th:each="chat : ${chats}">
-            <td><span th:text="${chat.port}"> Port </span></td>
+            <td>
+                <a th:text="${chat.port}" th:href="@{/connectChat/{port}(port=${chat.port})}"></a>
+            </td>
             <br>
         </tr>
     </b>

@@ -5,51 +5,41 @@
           content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Chat Application</title>
     <link rel="stylesheet" th:href="@{/style.css}"/>
-<!--    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"/>-->
+    <!--    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"/>-->
 </head>
 <body>
 
 
-<div id="welcome-page">
-    <div class="welcome-page-container">
-        <h1 class="title">Welcome - To join the chat group enter your
-            name</h1>
-        <form id="welcomeForm" name="welcomeForm">
-            <div class="form-group">
-                <input type="text" id="name" placeholder="name"
-                       class="form-control" />
-            </div>
-            <div class="form-group">
-                <button type="submit" onclass="accent username-submit">Lets
-                    Begin</button>
-            </div>
-        </form>
-    </div>
+<div id="chat-page">
+
+    <tr>
+        <b>
+            <span>Chat:</span>
+            <span th:text="${port}" style="color: #ff4743 ;"/>
+        </b>
+    </tr>
+    <br>
+    <tr th:each="message : ${messages}">
+        <td>
+            <href th:text="${message.content}"></href>
+        </td>
+        <br>
+    </tr>
+    <form action="#" th:action="@{'/connectChat/{port}/sendMessage' (port=${port})}"  th:object="${message}" th:method="get" >
+        <input type="text" th:field="*{content}" />
+        <button type="submit" style="background-color: #f4f4f4">Send message</button>
+    </form>
+    <form action="#" th:action="@{'/connectChat/{port}/refresh' (port=${port})}" th:method="get" >
+        <input type="hidden" name="_method" value="refresh" />
+        <button type="submit" id="submitButton" style="background-color: #f4f4f4">Retrieve messages</button>
+    </form>
+    <form action="#" th:action="@{'/connectChat/{port}/leave' (port=${port})}" th:method="get" >
+        <input type="hidden" name="_method" value="leave" />
+        <button type="submit" id="submitLeave" style="background-color: #f4f4f4">Leave chat</button>
+    </form>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
+<script src="/js/script.js"></script>
 
-
-<div id="dialogue-page" class="hidden">
-    <div class="dialogue-container">
-        <div class="dialogue-header">
-            <h2>Chat Application</h2>
-        </div>
-        <ul id="messageList">
-
-        </ul>
-        <form id="dialogueForm" name="dialogueForm" nameForm="dialogueForm">
-            <div class="form-group">
-                <div class="input-group clearfix">
-                    <input type="text" id="chatMessage"
-                           placeholder="Enter a message...." autocomplete="off"
-                           class="form-control" />
-                    <button type="submit" class="glyphicon glyphicon-share-alt">Send</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-<script src="js/script.js" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Join chat</title>
+</head>
+<body>
+<div id="welcome-page">
+    <div class="welcome-page-container">
+        <h1 class="title">Chat join</h1>
+        <form th:action="@{/joinChat/submit}" th:object="${chatform}" method="post">
+                <input type="text" th:field="*{port}"/>
+                <input type="submit"> Join chat</input>
+        </form>
+    </div>
+</div>
+</body>
+</html>

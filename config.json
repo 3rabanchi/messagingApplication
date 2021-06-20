@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    {
+      "management_port": "1001",
+      "amqp_port": "1011"
+    },
+    {
+      "management_port": "1002",
+      "amqp_port": "1012"
+    },
+    {
+      "management_port": "1003",
+      "amqp_port": "1013"
+    },
+    {
+      "management_port": "1004",
+      "amqp_port": "1014"
+    },
+    {
+      "management_port": "1005",
+      "amqp_port": "1015"
+    },
+    {
+      "management_port": "1006",
+      "amqp_port": "1016"
+    }
+  ],
+  "user": "sultan"
+}

@@ -2,8 +2,8 @@ rabbitmq1:
   image: "rabbitmq:3-management"
   hostname: "rabbitmq1"
   ports:
-    - "15672:15672"
-    - "5672:5672"
+    - "1001:15672"
+    - "1011:5672"
     - "1883:1883"
   labels:
     NAME: "rabbitmq1"
@@ -13,8 +13,8 @@ rabbitmq2:
   image: "rabbitmq:3-management"
   hostname: "rabbitmq2"
   ports:
-    - "15673:15672"
-    - "5673:5672"
+    - "1002:15672"
+    - "1012:5672"
     - "1884:1883"
   labels:
     NAME: "rabbitmq2"
@@ -24,8 +24,8 @@ rabbitmq3:
   image: "rabbitmq:3-management"
   hostname: "rabbitmq3"
   ports:
-    - "15674:15672"
-    - "5674:5672"
+    - "1003:15672"
+    - "1013:5672"
     - "1885:1883"
   labels:
     NAME: "rabbitmq3"
