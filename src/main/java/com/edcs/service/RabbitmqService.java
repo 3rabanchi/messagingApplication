@@ -103,13 +103,14 @@ public class RabbitmqService {
         myReader.close();
         boolean flag = true;
         for (String line : lines) {
-            line.contains(port);
-            try {
-                channel.basicPublish(EXCHANGE_NAME, "user.*", null, (config.getUser()+line.substring(line.lastIndexOf(":"))).getBytes());
-            } catch (Exception e) {
-                e.printStackTrace();
-                flag = false;
-                break;
+            if(line.contains(port)){
+                try {
+                    channel.basicPublish(EXCHANGE_NAME, "user.*", null, (config.getUser()+line.substring(line.lastIndexOf(":"))).getBytes());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    flag = false;
+                    break;
+                }
             }
             System.out.println("THERE IS AN UNSENT MESSAGE FOR PORT " + port);
         }
